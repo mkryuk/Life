@@ -100,7 +100,7 @@ namespace Life
             {
                 for (var x = 0; x < FieldSize.Width; x++)
                 {
-                    _cells[y][x] = new Cell(this, new Point(x, y), Convert.ToBoolean(giveLife.Next(-1,2)));
+                    _cells[y][x] = new Cell(this, new Point(x, y), Convert.ToBoolean(giveLife.Next(0,2)));
                     Draw += _cells[y][x].Draw;
                     CalcNeighbors += _cells[y][x].CalcNeighbors;
                     NextStep += _cells[y][x].NextStep;
