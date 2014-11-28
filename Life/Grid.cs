@@ -16,6 +16,7 @@ namespace Life
         public event EventHandler CalcNeighbors;
         public event EventHandler NextStep;
         public event EventHandler FillNeighbors;
+        public int[] result = new int[5];
 
         protected virtual void OnFillNeighbors()
         {
@@ -26,12 +27,13 @@ namespace Life
         public int Alive { get; set; }
 
         protected virtual void OnMoveNext()
-        {
-            //Calc neighbors for next step
-            OnCalcNeighbors();
+        {            
 
             //Draw all cells
-            OnDraw();           
+            OnDraw();
+
+            //Calc neighbors for next step
+            OnCalcNeighbors();
 
             EventHandler handler = NextStep;
             if (handler != null) handler(this, EventArgs.Empty);
@@ -113,7 +115,7 @@ namespace Life
             {
                 for (var x = 0; x < FieldSize.Width; x++)
                 {
-                    _cells[y][x] = new Cell(this, new Point(x, y), Convert.ToBoolean(giveLife.Next(0,2)));
+                    _cells[y][x] = new Cell(this, new Point(x, y), true);
                     Draw += _cells[y][x].Draw;
                     CalcNeighbors += _cells[y][x].CalcNeighbors;
                     NextStep += _cells[y][x].NextStep;
@@ -121,14 +123,26 @@ namespace Life
                 }
             }
 
+            
+            
+
+            /*_cells[0][1].IsAlive = true;
+            _cells[0][1]._color = ConsoleColor.Red;
+
+            _cells[1][2].IsAlive = true;
+            _cells[1][2]._color = ConsoleColor.Red;
+
+            _cells[2][0].IsAlive = true;
+            _cells[2][0]._color = ConsoleColor.Red;
+
+            _cells[2][1].IsAlive = true;
+            _cells[2][1]._color = ConsoleColor.Red;
+            
+            _cells[2][2].IsAlive = true;
+            _cells[2][2]._color = ConsoleColor.Red;
+            */
             //Filling cells neighbors
             OnFillNeighbors();
-
-            //_cells[0][1].IsAlive = true;
-            //_cells[1][2].IsAlive = true;
-            //_cells[2][0].IsAlive = true;
-            //_cells[2][1].IsAlive = true;
-            //_cells[2][2].IsAlive = true;
         }
 
         public void MoveNext()

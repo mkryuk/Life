@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
@@ -27,10 +28,12 @@ namespace Life
         private bool _isAlive;
         private bool _shouldRedraw;
         private List<Cell> _neighbors;
-        public int AliveNeighborsCount { get; set; }
+        
+        //public int AliveNeighborsCount { get; set; }
+        private Dictionary<ConsoleColor, int> ArroundColorsCount;
 
         //cell color
-        private ConsoleColor _color;
+        public ConsoleColor _color;
 
         private static Random _fatum = new Random();
         public bool IsAlive {
@@ -49,7 +52,10 @@ namespace Life
             _mainGrid = mainGrid;
             _isAlive = isAlive;
             _shouldRedraw = true;
-            _color = CellColor.Color[_fatum.Next(0,CellColor.Color.Count)];
+            int index = _fatum.Next(0, CellColor.Color.Count);
+            _color = CellColor.Color[index];
+            mainGrid.result[index]++;
+
             if (isAlive)
             {
                 _mainGrid.Alive++;
@@ -60,33 +66,86 @@ namespace Life
         public void CalcNeighbors(object sender, EventArgs e)
         {
             var alived = _neighbors.FindAll(cell => cell.IsAlive);
-            AliveNeighborsCount = alived.Count;
-            var bigger = alived.Find((cell)=>cell.AliveNeighborsCount >= AliveNeighborsCount);
-            if (bigger != null) _color = bigger._color;
+
+            var arroundColorsCount = new Dictionary<ConsoleColor, int>();
+            foreach (var cell in alived)
+            {
+                var value = 0;
+                if (!arroundColorsCount.TryGetValue(cell._color, out value))
+                {
+                    arroundColorsCount.Add(cell._color, 0);
+                }
+                arroundColorsCount[cell._color]++;
+            }
+            ArroundColorsCount = arroundColorsCount;
+            //AliveNeighborsCount = alived.FindAll((cell)=>cell._color == _color).Count;
+
+            //var bigger = alived.Find((cell)=>cell.AliveNeighborsCount >= AliveNeighborsCount);
+            //if (bigger != null) _color = bigger._color;
+
+            //ToList().FindAll((keyVal) => keyVal.Value == 3);
             //AliveNeighborsCount = _mainGrid.GetNeighbors(Position).ToList().FindAll(cell => cell.IsAlive).Count;
+        }
+
+        public ConsoleColor GetWinnerColor()
+        {
+            var list = new List<ConsoleColor>();
+            ArroundColorsCount.All((item) =>
+            {
+                if (item.Value == 3) list.Add(item.Key);
+                return false;
+            });
+            var result = ConsoleColor.Black;
+            switch (list.Count)
+            {
+                case 0:
+                    result = ConsoleColor.Black;
+                    break;
+                case 1:
+                    result = list[0];
+                    break;
+                case 2:
+                    result = list[_fatum.Next(0, 2)];
+                    break;
+            }
+            return result;
         }
 
         public void NextStep(object sender, EventArgs e)
         {
-            //cell was dead and should be born
-            if (!IsAlive && AliveNeighborsCount == 3)
+            //if current neibors count is 3 and they are the same color we are alive
+            int sameColorCount = 0;
+            ArroundColorsCount.TryGetValue(_color, out sameColorCount);
+            if (sameColorCount == 3)
+            {
+                return;
+            }
+
+            ConsoleColor winnerColor = GetWinnerColor();
+
+            //if cell is dead and there are 3 cells of some color let it born
+            if (!IsAlive && winnerColor != ConsoleColor.Black)
             {
                 _isAlive = true;
-                _mainGrid.Alive++;
+                //_mainGrid.Alive++;
                 _shouldRedraw = true;
+                _color = winnerColor;
                 return;
             }
 
             //if cell is dead - return
             if (!IsAlive) return;
 
-            //if cell is alive and should die
-            if (AliveNeighborsCount < 2 || AliveNeighborsCount > 3)
+            // if there are 2 cells with same color 
+            if (sameColorCount == 2)
             {
-                _isAlive = false;
-                _mainGrid.Alive--;
-                _shouldRedraw = true;
+                return;
             }
+
+            //if cell is alive and should die
+            _isAlive = false;
+            _color = ConsoleColor.Black;
+            _shouldRedraw = true;
         }
 
         public void Draw(object sender, EventArgs e)
