@@ -11,10 +11,10 @@ namespace Life
     {
         static void Main(string[] args)
         {
-            Grid Life = new Grid(new Size(Console.LargestWindowWidth-2, Console.LargestWindowHeight-2));
-            while (Life.Alive > 0)
+            var life = new Grid(new Size(Console.LargestWindowWidth-2, Console.LargestWindowHeight-2));
+            while (life.Alive > 0)
             {
-                Life.MoveNext();
+                life.MoveNext();
             }                                              
         }
     }

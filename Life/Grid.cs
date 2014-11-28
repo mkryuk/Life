@@ -15,12 +15,24 @@ namespace Life
         public event EventHandler Draw;
         public event EventHandler CalcNeighbors;
         public event EventHandler NextStep;
+        public event EventHandler FillNeighbors;
+
+        protected virtual void OnFillNeighbors()
+        {
+            EventHandler handler = FillNeighbors;
+            if (handler != null) handler(this, EventArgs.Empty);
+        }
+
         public int Alive { get; set; }
 
         protected virtual void OnMoveNext()
         {
-            OnDraw();
+            //Calc neighbors for next step
             OnCalcNeighbors();
+
+            //Draw all cells
+            OnDraw();           
+
             EventHandler handler = NextStep;
             if (handler != null) handler(this, EventArgs.Empty);
         }
@@ -96,16 +108,21 @@ namespace Life
         private void FillGrid()
         {
             var giveLife = new Random();
+            //Create grid with cells
             for (var y = 0; y < FieldSize.Height; y++)
             {
                 for (var x = 0; x < FieldSize.Width; x++)
                 {
-                    _cells[y][x] = new Cell(this, new Point(x, y), Convert.ToBoolean(giveLife.Next(-1,2)));
+                    _cells[y][x] = new Cell(this, new Point(x, y), Convert.ToBoolean(giveLife.Next(0,2)));
                     Draw += _cells[y][x].Draw;
                     CalcNeighbors += _cells[y][x].CalcNeighbors;
                     NextStep += _cells[y][x].NextStep;
+                    FillNeighbors += _cells[y][x].FillNeighbors;
                 }
             }
+
+            //Filling cells neighbors
+            OnFillNeighbors();
 
             //_cells[0][1].IsAlive = true;
             //_cells[1][2].IsAlive = true;
@@ -115,8 +132,7 @@ namespace Life
         }
 
         public void MoveNext()
-        {
-            //Console.Clear();
+        {            
             OnMoveNext();
         }
     }
